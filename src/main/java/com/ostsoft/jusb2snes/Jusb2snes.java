@@ -378,13 +378,11 @@ public class Jusb2snes {
             if (bytesReadThisRequest == 0) {
                 logger.log(Level.WARNING, "While reading it only returned 0 bytes");
                 throw new IOException("While reading it only returned 0 bytes");
-//                return readBytes;
             }
 
             if (bytesReadThisRequest == -1) {
                 logger.log(Level.WARNING, "The end has been reached (got -1 while reading)");
                 throw new IOException("The end has been reached (got -1 while reading)");
-//                return readBytes;
             }
 
 //            System.out.println("Bytes read: " + bytesRead + " -> " + (bytesRead + bytesReadThisRequest) + " / " + size + ", this turn we got " + bytesReadThisRequest + "  bytes of max read per request at " + len + ", its " + portIn.available() + " bytes left in the que");
@@ -397,6 +395,17 @@ public class Jusb2snes {
             System.out.println("Bytes available to read on the inputstream: " + portIn.available());
         }
         return readBytes;
+    }
+
+    /**
+     * Boots to menu on the SNES
+     *
+     * @throws IOException
+     */
+    public void bootMenu() throws IOException {
+        byte[] bytes = getHeader(Opcode.USBINT_SERVER_OPCODE_MENU_RESET, Space.USBINT_SERVER_SPACE_FILE, Flag.USBINT_SERVER_FLAGS_NONE);
+        writeBytes(bytes);
+        readBytes(512);
     }
 
     private void writeBytes(byte[] bytes) throws IOException {

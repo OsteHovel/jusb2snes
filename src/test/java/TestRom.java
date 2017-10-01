@@ -9,7 +9,7 @@ public class TestRom {
 
     @Test
     void read() throws PortInUseException, UnsupportedCommOperationException, NoSuchPortException, IOException {
-        Jusb2snes jusb2snes = new Jusb2snes(Config.portName);
+        Jusb2snes jusb2snes = TestPlatform.getJusb2snes();
         byte[] read = jusb2snes.read(0xF50000, 64);
         Assertions.assertNotNull(read);
         jusb2snes.close();
@@ -32,7 +32,7 @@ public class TestRom {
     }
 
     private void writeAndRead(int length) throws PortInUseException, UnsupportedCommOperationException, NoSuchPortException, IOException {
-        Jusb2snes jusb2snes = new Jusb2snes(Config.portName);
+        Jusb2snes jusb2snes = TestPlatform.getJusb2snes();
         byte[] bytes = new byte[length];
         for (int i = 0; i < bytes.length; i++) {
             bytes[i] = (byte) i;
