@@ -408,6 +408,40 @@ public class Jusb2snes {
         readBytes(512);
     }
 
+    /**
+     * Firmware version as int
+     * Experimental versions is 0x44534E53
+     *
+     * @return 0x80000000 + version number
+     * @throws IOException
+     */
+    public int getVersion() throws IOException {
+        byte[] requestBytes = getHeader(Opcode.USBINT_SERVER_OPCODE_INFO, Space.USBINT_SERVER_SPACE_SNES, Flag.USBINT_SERVER_FLAGS_NONE);
+        writeBytes(requestBytes);
+        byte[] responseBytes = readBytes(512);
+        return getWord(responseBytes, 256);
+    }
+
+    /**
+     * Gives you the firmware version as string
+     *
+     * @return Firmware version string
+     * @throws IOException
+     */
+    public String getVersionString() throws IOException {
+        byte[] requestBytes = getHeader(Opcode.USBINT_SERVER_OPCODE_INFO, Space.USBINT_SERVER_SPACE_SNES, Flag.USBINT_SERVER_FLAGS_NONE);
+        writeBytes(requestBytes);
+        byte[] responseBytes = readBytes(512);
+        StringBuilder stringBuilder = new StringBuilder(25);
+        int offset = 260;
+        while (responseBytes[offset] != 0 && offset < 512) {
+            stringBuilder.append((char) responseBytes[offset]);
+            offset++;
+        }
+
+        return stringBuilder.toString();
+    }
+
     private void writeBytes(byte[] bytes) throws IOException {
         if (DEBUG) {
             System.out.print("Write: ");
@@ -438,5 +472,9 @@ public class Jusb2snes {
             e.printStackTrace();
         }
         port.close();
+    }
+
+    private int getWord(byte[] bytes, int offset) {
+        return (Byte.toUnsignedInt(bytes[offset]) << 24 | Byte.toUnsignedInt(bytes[offset + 1]) << 16 | Byte.toUnsignedInt(bytes[offset + 2]) << 8 | Byte.toUnsignedInt(bytes[offset + 3]));
     }
 }

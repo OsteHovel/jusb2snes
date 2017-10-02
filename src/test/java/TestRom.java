@@ -10,6 +10,7 @@ public class TestRom {
     @Test
     void read() throws PortInUseException, UnsupportedCommOperationException, NoSuchPortException, IOException {
         Jusb2snes jusb2snes = TestPlatform.getJusb2snes();
+
         byte[] read = jusb2snes.read(0xF50000, 64);
         Assertions.assertNotNull(read);
         jusb2snes.close();
