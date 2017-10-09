@@ -1,24 +1,10 @@
 package com.ostsoft.jusb2snes;
 
-import purejavacomm.CommPortIdentifier;
-import purejavacomm.NoSuchPortException;
-import purejavacomm.PortInUseException;
-import purejavacomm.SerialPort;
-import purejavacomm.UnsupportedCommOperationException;
+import purejavacomm.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
 
 public class Jusb2snes {
     private static final boolean DEBUG = false;
@@ -150,6 +136,39 @@ public class Jusb2snes {
             }
             logger.log(Level.SEVERE, "There is " + available + " bytes left in the buffer from SNES");
         }
+    }
+
+    public void write(List<USBVector> vectors) throws IOException {
+        byte[] requestBytes = new byte[64];
+        requestBytes[0] = 'U';
+        requestBytes[1] = 'S';
+        requestBytes[2] = 'B';
+        requestBytes[3] = 'A';
+        requestBytes[4] = Opcode.USBINT_SERVER_OPCODE_VPUT.getByte(); // opcode
+        requestBytes[5] = Space.USBINT_SERVER_SPACE_SNES.getByte(); // space
+        requestBytes[6] = Flag.getByte(Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA, Flag.USBINT_SERVER_FLAGS_NORESP)); // flags
+
+        int numberOfVectors = vectors.size();
+        if (numberOfVectors > 8) {
+            numberOfVectors = 8;
+        }
+
+        int totalSize = 0;
+        for (int i = 0; i < numberOfVectors; i++) {
+            USBVector vector = vectors.get(i);
+            totalSize += vector.getSize();
+            requestBytes[32 + i * 4] = (byte) (vector.getSize() & 0xFF);
+            requestBytes[33 + i * 4] = (byte) ((vector.getAddress() >> 16) & 0xFF);
+            requestBytes[34 + i * 4] = (byte) ((vector.getAddress() >> 8) & 0xFF);
+            requestBytes[35 + i * 4] = (byte) ((vector.getAddress()) & 0xFF);
+        }
+        writeBytes(requestBytes);
+
+        for (int i = 0; i < numberOfVectors; i++) {
+            USBVector vector = vectors.get(i);
+            writeBytes(vector.getBytes());
+        }
+        writeBytes(new byte[getAligned(totalSize, 64) - totalSize]);
     }
 
     private int getAligned(int value, int align) {
@@ -461,14 +480,12 @@ public class Jusb2snes {
         port.setDTR(false);
         try {
             portOut.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         try {
             portIn.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         port.close();

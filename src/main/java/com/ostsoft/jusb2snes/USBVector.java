@@ -9,6 +9,11 @@ public class USBVector {
         this.bytes = new byte[size];
     }
 
+    public USBVector(int address, byte[] bytes) {
+        this.address = address;
+        this.bytes = bytes;
+    }
+
     public int getAddress() {
         return address;
     }
