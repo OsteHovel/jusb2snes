@@ -35,7 +35,7 @@ public class Jusb2snes {
     }
 
     public byte[] read(int offset, int size) throws IOException {
-        return read(offset, size, Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA, Flag.USBINT_SERVER_FLAGS_NORESP));
+        return read(offset, size, Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA));
     }
 
     public byte[] read(int offset, int size, List<Flag> flags) throws IOException {
@@ -70,7 +70,8 @@ public class Jusb2snes {
     }
 
     public void write(int offset, byte[] buffer) throws IOException {
-        byte[] bytes = getHeader(Opcode.USBINT_SERVER_OPCODE_PUT, Space.USBINT_SERVER_SPACE_SNES, Arrays.asList(Flag.USBINT_SERVER_FLAGS_NORESP, Flag.USBINT_SERVER_FLAGS_64BDATA));
+        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA);
+        byte[] bytes = getHeader(Opcode.USBINT_SERVER_OPCODE_PUT, Space.USBINT_SERVER_SPACE_SNES, flags);
 
         long size = buffer.length;
         bytes[252] = (byte) ((size >> 24) & 0xFF);
@@ -84,6 +85,10 @@ public class Jusb2snes {
         bytes[259] = (byte) (offset & 0xFF);
 
         writeBytes(bytes);
+
+        if (!flags.contains(Flag.USBINT_SERVER_FLAGS_NORESP)) {
+            readBytes(512);
+        }
 
         writeBytes(buffer);
         if (buffer.length % 64 != 0) {
@@ -100,7 +105,8 @@ public class Jusb2snes {
         requestBytes[3] = 'A';
         requestBytes[4] = Opcode.USBINT_SERVER_OPCODE_VGET.getByte(); // opcode
         requestBytes[5] = Space.USBINT_SERVER_SPACE_SNES.getByte(); // space
-        requestBytes[6] = Flag.getByte(Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA, Flag.USBINT_SERVER_FLAGS_NORESP)); // flags
+        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA);
+        requestBytes[6] = Flag.getByte(flags); // flags
 
         int numberOfVectors = vectors.size();
         if (numberOfVectors > 8) {
@@ -118,6 +124,10 @@ public class Jusb2snes {
             requestBytes[35 + i * 4] = (byte) ((vector.getAddress()) & 0xFF);
         }
         writeBytes(requestBytes);
+
+        if (!flags.contains(Flag.USBINT_SERVER_FLAGS_NORESP)) {
+            readBytes(512);
+        }
 
         int aligned = getAligned(totalSize, 64);
         byte[] bytes = readBytes(aligned);
@@ -146,7 +156,8 @@ public class Jusb2snes {
         requestBytes[3] = 'A';
         requestBytes[4] = Opcode.USBINT_SERVER_OPCODE_VPUT.getByte(); // opcode
         requestBytes[5] = Space.USBINT_SERVER_SPACE_SNES.getByte(); // space
-        requestBytes[6] = Flag.getByte(Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA, Flag.USBINT_SERVER_FLAGS_NORESP)); // flags
+        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA);
+        requestBytes[6] = Flag.getByte(flags); // flags
 
         int numberOfVectors = vectors.size();
         if (numberOfVectors > 8) {
@@ -163,6 +174,10 @@ public class Jusb2snes {
             requestBytes[35 + i * 4] = (byte) ((vector.getAddress()) & 0xFF);
         }
         writeBytes(requestBytes);
+
+        if (!flags.contains(Flag.USBINT_SERVER_FLAGS_NORESP)) {
+            readBytes(512);
+        }
 
         for (int i = 0; i < numberOfVectors; i++) {
             USBVector vector = vectors.get(i);

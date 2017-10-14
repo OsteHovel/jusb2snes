@@ -7,7 +7,7 @@ import purejavacomm.UnsupportedCommOperationException;
 import java.io.IOException;
 
 class TestPlatform {
-    public static final String portName = "COM25";
+    public static final String portName = "COM6";
 
     public static Jusb2snes getJusb2snes() throws PortInUseException, UnsupportedCommOperationException, NoSuchPortException, IOException {
         Assertions.assertNotNull(portName);
