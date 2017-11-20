@@ -35,7 +35,7 @@ public class Jusb2snes {
     }
 
     public byte[] read(int offset, int size) throws IOException {
-        return read(offset, size, Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA));
+        return read(offset, size, Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA, Flag.USBINT_SERVER_FLAGS_NORESP));
     }
 
     public byte[] read(int offset, int size, List<Flag> flags) throws IOException {
@@ -70,7 +70,11 @@ public class Jusb2snes {
     }
 
     public void write(int offset, byte[] buffer) throws IOException {
-        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA);
+        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA, Flag.USBINT_SERVER_FLAGS_NORESP);
+        write(offset, buffer, flags);
+    }
+
+    public void write(int offset, byte[] buffer, List<Flag> flags) throws IOException {
         byte[] bytes = getHeader(Opcode.USBINT_SERVER_OPCODE_PUT, Space.USBINT_SERVER_SPACE_SNES, flags);
 
         long size = buffer.length;
@@ -98,6 +102,11 @@ public class Jusb2snes {
     }
 
     public void read(List<USBVector> vectors) throws IOException {
+        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA, Flag.USBINT_SERVER_FLAGS_NORESP);
+        read(vectors, flags);
+    }
+
+    public void read(List<USBVector> vectors, List<Flag> flags) throws IOException {
         byte[] requestBytes = new byte[64];
         requestBytes[0] = 'U';
         requestBytes[1] = 'S';
@@ -105,7 +114,6 @@ public class Jusb2snes {
         requestBytes[3] = 'A';
         requestBytes[4] = Opcode.USBINT_SERVER_OPCODE_VGET.getByte(); // opcode
         requestBytes[5] = Space.USBINT_SERVER_SPACE_SNES.getByte(); // space
-        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA);
         requestBytes[6] = Flag.getByte(flags); // flags
 
         int numberOfVectors = vectors.size();
@@ -149,6 +157,11 @@ public class Jusb2snes {
     }
 
     public void write(List<USBVector> vectors) throws IOException {
+        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA);
+        write(vectors, flags);
+    }
+
+    public void write(List<USBVector> vectors, List<Flag> flags) throws IOException {
         byte[] requestBytes = new byte[64];
         requestBytes[0] = 'U';
         requestBytes[1] = 'S';
@@ -156,7 +169,6 @@ public class Jusb2snes {
         requestBytes[3] = 'A';
         requestBytes[4] = Opcode.USBINT_SERVER_OPCODE_VPUT.getByte(); // opcode
         requestBytes[5] = Space.USBINT_SERVER_SPACE_SNES.getByte(); // space
-        List<Flag> flags = Arrays.asList(Flag.USBINT_SERVER_FLAGS_64BDATA);
         requestBytes[6] = Flag.getByte(flags); // flags
 
         int numberOfVectors = vectors.size();
